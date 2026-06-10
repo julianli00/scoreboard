@@ -1,22 +1,5 @@
 [
   {
-    "id": "cged",
-    "name": "CGED",
-    "aliases": ["NLP-TEA CGED", "Chinese Grammatical Error Diagnosis"],
-    "population": "L2",
-    "domain": "learner exam and shared-task data",
-    "localization_basis": "sentence ID and span offsets",
-    "correction_format": "diagnosis plus corrections in later tasks",
-    "error_label_explicitness": "explicit detection labels",
-    "multi_reference": "no",
-    "documentation_qc": "shared-task guidelines",
-    "common_metrics": ["Official score", "F1"],
-    "evaluation_notes": "Detection and correction scores should be labeled separately from full sentence-level correction results.",
-    "url": "https://github.com/blcuicall/cged_datasets",
-    "notes": "A family of related shared tasks rather than one uniform corpus.",
-    "source": "CGEC survey Table 2, page 23"
-  },
-  {
     "id": "nlpcc2018",
     "name": "NLPCC2018",
     "aliases": ["NLPCC-2018", "NLPCC 2018", "NLPCC18"],

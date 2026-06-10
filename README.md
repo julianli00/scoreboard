@@ -11,8 +11,8 @@ Table 5, and Table 6.
 
 ## What V1 Includes
 
-- Dataset overview cards for CGED, NLPCC2018, MuCGEC, YACLC, FlaCGEC, FCGEC,
-  CCTC, NaCGEC, NaSGEC, and CEFE.
+- Dataset overview cards for NLPCC2018, MuCGEC, YACLC, FlaCGEC, FCGEC, CCTC,
+  NaCGEC, NaSGEC, and CEFE.
 - A two-dimensional comparison matrix: rows are paper/system/model entries,
   top-level columns are datasets, and second-level columns are evaluation
   standards such as `test F0.5 / word-level` or `test F0.5 / span-level /
@@ -166,7 +166,7 @@ Examples:
 ```text
 NLPCC2018 -> test F0.5 -> word-level
 MuCGEC -> test F0.5 -> span-level / ChERRANT
-CGED -> CGED 2021 test Official score -> official-level / CGED shared task
+FCGEC -> test F0.5 -> span-level / ChERRANT
 ```
 
 Click a second-level standard header to sort models by that score. Click the

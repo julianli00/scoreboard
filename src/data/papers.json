@@ -78,19 +78,6 @@
     "notes": "Survey row gives span-level ChERRANT F0.5."
   },
   {
-    "id": "wu_2023_token_masking",
-    "citation": "Yangjun Wu et al. (2023)",
-    "title": "Token-level masking regularization for Transformer-based CGEC",
-    "year": 2023,
-    "venue": "CGEC system paper",
-    "paper_url": "https://aclanthology.org/2023.emnlp-main.871/",
-    "code_url": "",
-    "verified_source": "CGEC survey Table 6",
-    "datasets_reported": ["CGED 2021", "CGED 2020"],
-    "metrics_reported": ["Official score", "Detection F1", "Correction F1"],
-    "notes": "CGED diagnostic/correction task metrics are not directly comparable with sentence-rewriting F0.5."
-  },
-  {
     "id": "zhang_2023_nasgec_bart",
     "citation": "Zhang et al. (2023)",
     "title": "NaSGEC: a Multi-Domain Chinese Grammatical Error Correction Dataset from Native Speaker Texts",
