@@ -19,8 +19,9 @@ import datasetsData from "./data/datasets.json";
 import papersData from "./data/papers.json";
 import resultsData from "./data/results.json";
 import { filterResults, toCsv, uniqueSorted } from "./utils/filters";
-import { buildMatrix, matrixToCsv, sortMatrixRows } from "./utils/matrix";
+import { buildMatrix, matrixToCsv, sortMatrixRows, YEAR_SORT_COLUMN_ID } from "./utils/matrix";
 import { enrichResults } from "./utils/ranking";
+import { standardizeScoreboardResults } from "./utils/scoreboardStandards";
 import type { FilterState } from "./utils/filters";
 import type { MatrixSortState } from "./utils/matrix";
 import type { Dataset, Paper, Result } from "./utils/types";
@@ -28,6 +29,11 @@ import type { Dataset, Paper, Result } from "./utils/types";
 const datasets = datasetsData as Dataset[];
 const papers = papersData as Paper[];
 const results = resultsData as Result[];
+const compactStandards = [
+  { label: "character-level", unit: "character" },
+  { label: "word/span-level", unit: "word/span" },
+  { label: "unknown unit", unit: "unknown" },
+];
 
 const initialFilters: FilterState = {
   query: "",
@@ -43,21 +49,81 @@ export default function App() {
   const [matrixSort, setMatrixSort] = useState<MatrixSortState | null>(null);
   const [darkMode, setDarkMode] = useState(false);
 
-  const enrichedResults = useMemo(
-    () => enrichResults(results, papers, datasets),
+  const standardizedResults = useMemo(
+    () => standardizeScoreboardResults(results),
     [],
   );
+  const scoreboardResults = useMemo(
+    () => enrichResults(standardizedResults.included, papers, datasets),
+    [standardizedResults],
+  );
+  const markedStandardsByDataset = useMemo(() => {
+    const paperMap = new Map(papers.map((paper) => [paper.id, paper]));
+    const grouped = new Map<string, string[]>();
 
+    for (const marked of standardizedResults.marked) {
+      const paper = paperMap.get(marked.paperId);
+      const label = [
+        paper?.citation ?? marked.paperId,
+        marked.systemName,
+        `${marked.split} ${marked.metric}`,
+        `${marked.unit} / ${marked.scorer}`,
+      ]
+        .filter(Boolean)
+        .join(" - ");
+      const items = grouped.get(marked.datasetId) ?? [];
+      items.push(label);
+      grouped.set(marked.datasetId, items);
+    }
+
+    return grouped;
+  }, [standardizedResults]);
+  const metricCoverageRows = datasets.map((dataset) => {
+    const datasetResults = scoreboardResults.filter((result) => result.dataset_id === dataset.id);
+    const countsByUnit = new Map<string, number>();
+
+    for (const result of datasetResults) {
+      countsByUnit.set(result.unit, (countsByUnit.get(result.unit) ?? 0) + 1);
+    }
+
+    return {
+      dataset,
+      countsByUnit,
+      markedCount: markedStandardsByDataset.get(dataset.id)?.length ?? 0,
+      resultCount: datasetResults.length,
+    };
+  });
+
+  const filteredResults = filterResults(scoreboardResults, filters);
+  const exportMatrix = buildMatrix(filteredResults, datasets);
+  const sortedExportRows = sortMatrixRows(exportMatrix.rows, matrixSort);
+  const datasetMatrices = datasets.map((dataset) => {
+    const seededResultCount = scoreboardResults.filter((result) => result.dataset_id === dataset.id).length;
+    const datasetResults = filteredResults.filter((result) => result.dataset_id === dataset.id);
+    const matrix = buildMatrix(datasetResults, [dataset]);
+    const sortApplies =
+      matrixSort?.columnId === YEAR_SORT_COLUMN_ID ||
+      matrix.groups.some((group) =>
+        group.columns.some((column) => column.id === matrixSort?.columnId),
+      );
+    const sortState = sortApplies ? matrixSort : null;
+
+    return {
+      dataset,
+      filteredResultCount: datasetResults.length,
+      matrix,
+      rows: sortMatrixRows(matrix.rows, sortState),
+      seededResultCount,
+      sortState,
+    };
+  });
   const focusedDataset = datasets.find((dataset) => dataset.id === focusedDatasetId) ?? datasets[0];
-  const filteredResults = filterResults(enrichedResults, filters);
-  const matrix = buildMatrix(filteredResults, datasets);
-  const sortedMatrixRows = sortMatrixRows(matrix.rows, matrixSort);
-  const allRankGroups = new Set(enrichedResults.map((result) => result.rank_group)).size;
+  const allRankGroups = new Set(scoreboardResults.map((result) => result.rank_group)).size;
 
-  const metrics = uniqueSorted(enrichedResults.map((result) => result.metric));
-  const units = uniqueSorted(enrichedResults.map((result) => result.unit));
-  const methodFamilies = uniqueSorted(enrichedResults.map((result) => result.method_family));
-  const modelTypes = uniqueSorted(enrichedResults.map((result) => result.model_type));
+  const metrics = uniqueSorted(scoreboardResults.map((result) => result.metric));
+  const units = uniqueSorted(scoreboardResults.map((result) => result.unit));
+  const methodFamilies = uniqueSorted(scoreboardResults.map((result) => result.method_family));
+  const modelTypes = uniqueSorted(scoreboardResults.map((result) => result.model_type));
 
   function updateFilter<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -65,8 +131,8 @@ export default function App() {
 
   function handleDatasetSelect(id: string) {
     setFocusedDatasetId(id);
-    const leaderboard = document.getElementById("leaderboards");
-    leaderboard?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const section = document.getElementById(`matrix-${id}`) ?? document.getElementById("leaderboards");
+    section?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function handleMatrixSort(columnId: string) {
@@ -91,7 +157,7 @@ export default function App() {
           Scoreboard
         </a>
         <nav className="notranslate" translate="no">
-          <a href="#leaderboards">Matrix</a>
+          <a href="#metrics-overview">Metrics</a>
           <a href="#datasets">Datasets</a>
           <a href="#papers">Papers</a>
           <a href="#policy">Policy</a>
@@ -107,10 +173,21 @@ export default function App() {
       </header>
 
       <aside className="side-nav notranslate" aria-label="Page sections" translate="no">
-        <a href="#leaderboards">
+        <a href="#metrics-overview">
           <LayoutGrid size={15} aria-hidden="true" />
-          <span>Matrix</span>
+          <span>Metrics</span>
         </a>
+        <div className="side-nav-sublist" aria-label="Dataset tables">
+          {datasets.map((dataset) => (
+            <a
+              href={`#matrix-${dataset.id}`}
+              key={dataset.id}
+              onClick={() => setFocusedDatasetId(dataset.id)}
+            >
+              {dataset.name}
+            </a>
+          ))}
+        </div>
         <a href="#datasets">
           <Database size={15} aria-hidden="true" />
           <span>Datasets</span>
@@ -137,7 +214,7 @@ export default function App() {
             <div className="hero-actions">
               <a className="primary-action" href="#leaderboards">
                 <BookOpenCheck size={18} />
-                View Matrix
+                View Tables
               </a>
               <button
                 className="secondary-action"
@@ -164,27 +241,76 @@ export default function App() {
               <h2>Models by dataset and standard</h2>
             </div>
             <p>
-              Rows are citation-style paper/system entries. Columns are grouped
-              by dataset, then split into evaluation standards such as F0.5
-              word-level, F0.5 character-level, span-level ChERRANT, F1, and
-              official scores. Click a standard to cycle ascending, descending,
-              and default order.
+              Each dataset now has one dedicated table. Rows are citation-style
+              paper/system entries. Columns are normalized to test F0.5
+              character-level, word/span-level, or unknown unit, with ChERRANT
+              treated as the default scorer unless a row explicitly marks a
+              different test F0.5 scorer.
             </p>
           </div>
 
-          <div className="dataset-tabs notranslate" aria-label="Dataset focus controls" translate="no">
-            {datasets
-              .filter((dataset) => enrichedResults.some((result) => result.dataset_id === dataset.id))
-              .map((dataset) => (
-                <button
-                  className={dataset.id === focusedDataset.id ? "is-active" : ""}
-                  key={dataset.id}
-                  onClick={() => handleDatasetSelect(dataset.id)}
-                  type="button"
-                >
-                  {dataset.name}
-                </button>
-              ))}
+          <div className="dataset-jump-list notranslate" aria-label="Dataset table shortcuts" translate="no">
+            {datasets.map((dataset) => (
+              <a
+                className={dataset.id === focusedDataset.id ? "is-active" : ""}
+                href={`#matrix-${dataset.id}`}
+                key={dataset.id}
+                onClick={() => setFocusedDatasetId(dataset.id)}
+              >
+                {dataset.name}
+              </a>
+            ))}
+          </div>
+
+          <div className="metric-dataset-overview" id="metrics-overview">
+            <div className="metric-overview-header">
+              <div>
+                <p className="eyebrow">Metric Coverage</p>
+                <h3>Evaluation standards by dataset</h3>
+              </div>
+              <p>Compact test F0.5 columns used by the dataset tables below.</p>
+            </div>
+            <div className="metric-overview-shell notranslate" translate="no">
+              <table className="metric-dataset-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Dataset</th>
+                    {compactStandards.map((standard) => (
+                      <th scope="col" key={standard.unit}>
+                        test F0.5
+                        <span>{standard.label}</span>
+                      </th>
+                    ))}
+                    <th scope="col">Marked</th>
+                    <th scope="col">Rows</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metricCoverageRows.map(({ countsByUnit, dataset, markedCount, resultCount }) => (
+                    <tr key={dataset.id}>
+                      <th scope="row">
+                        <a href={`#matrix-${dataset.id}`} onClick={() => setFocusedDatasetId(dataset.id)}>
+                          {dataset.name}
+                        </a>
+                        <span>{dataset.population}</span>
+                      </th>
+                      {compactStandards.map((standard) => {
+                        const count = countsByUnit.get(standard.unit) ?? 0;
+                        return (
+                          <td className={count ? "has-standard" : ""} key={standard.unit}>
+                            {count ? `${count} row${count === 1 ? "" : "s"}` : "—"}
+                          </td>
+                        );
+                      })}
+                      <td className={markedCount ? "has-standard" : ""}>
+                        {markedCount ? `${markedCount} marked` : "—"}
+                      </td>
+                      <td>{resultCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="filter-panel notranslate" translate="no">
@@ -243,7 +369,7 @@ export default function App() {
               onClick={() =>
                 downloadText(
                   "cgec-matrix.csv",
-                  matrixToCsv(matrix.groups, sortedMatrixRows),
+                  matrixToCsv(exportMatrix.groups, sortedExportRows),
                   "text/csv",
                 )
               }
@@ -254,33 +380,59 @@ export default function App() {
             </button>
           </div>
 
-          <MatrixScoreboard
-            focusedDatasetId={focusedDataset.id}
-            groups={matrix.groups}
-            onSort={handleMatrixSort}
-            rows={sortedMatrixRows}
-            sortState={matrixSort}
-          />
+          <div className="dataset-scoreboards">
+            {datasetMatrices.map(
+              ({ dataset, filteredResultCount, matrix, rows, seededResultCount, sortState }) => (
+                <article className="dataset-scoreboard" id={`matrix-${dataset.id}`} key={dataset.id}>
+                  <div className="dataset-scoreboard-heading">
+                    <div>
+                      <p className="eyebrow">{dataset.population} dataset</p>
+                      <h3>{dataset.name}</h3>
+                    </div>
+                    <p>{dataset.evaluation_notes}</p>
+                    <div className="dataset-scoreboard-meta">
+                      <span>{seededResultCount} seeded results</span>
+                      <span>{filteredResultCount} visible</span>
+                    </div>
+                  </div>
+                  {markedStandardsByDataset.get(dataset.id)?.length ? (
+                    <div className="standard-note">
+                      <strong>Marked in this compact table</strong>
+                      <ul>
+                        {markedStandardsByDataset.get(dataset.id)?.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
 
-          <div className="dataset-context">
-            <div>
-              <strong>Focused dataset: {focusedDataset.name}</strong>
-              <span>{focusedDataset.evaluation_notes}</span>
-            </div>
-            <div>
-              <strong>Sorting rule</strong>
-              <span>
-                Sorting applies to the selected standard column only; missing
-                scores remain at the bottom and are shown as —.
-              </span>
-            </div>
+                  {seededResultCount === 0 ? (
+                    <div className="empty-state dataset-empty">
+                      No normalized test F0.5 result rows from the survey are seeded for this dataset yet.
+                    </div>
+                  ) : filteredResultCount === 0 ? (
+                    <div className="empty-state dataset-empty">
+                      No rows for this dataset match the current filters.
+                    </div>
+                  ) : (
+                    <MatrixScoreboard
+                      focusedDatasetId={dataset.id}
+                      groups={matrix.groups}
+                      onSort={handleMatrixSort}
+                      rows={rows}
+                      sortState={sortState}
+                    />
+                  )}
+                </article>
+              ),
+            )}
           </div>
         </section>
 
         <section className="stats-strip" aria-label="Scoreboard summary">
           <Stat label="Datasets" value={datasets.length} />
           <Stat label="Papers" value={papers.length} />
-          <Stat label="Result rows" value={results.length} />
+          <Stat label="Result rows" value={scoreboardResults.length} />
           <Stat label="Rank groups" value={allRankGroups} />
         </section>
 
@@ -288,15 +440,15 @@ export default function App() {
           activeDatasetId={focusedDataset.id}
           datasets={datasets}
           onSelectDataset={handleDatasetSelect}
-          results={enrichedResults}
+          results={scoreboardResults}
         />
 
-        <PaperList papers={papers} results={enrichedResults} />
+        <PaperList papers={papers} results={scoreboardResults} />
         <Methodology />
       </main>
 
       <footer className="site-footer">
-        <span>Last updated: 2026-06-06</span>
+        <span>Last updated: 2026-06-10</span>
         <span>Prototype data source: local CGEC survey PDF, Tables 2, 5, and 6.</span>
       </footer>
     </div>

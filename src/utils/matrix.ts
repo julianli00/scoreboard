@@ -218,7 +218,8 @@ function makeStandardLabel(result: EnrichedResult): string {
 
 function makeDetailLabel(result: EnrichedResult): string {
   const unit = result.unit === "unknown" ? "unknown unit" : `${result.unit}-level`;
-  const scorer = result.scorer === "unknown" ? "" : ` / ${result.scorer}`;
+  const scorer =
+    result.scorer === "unknown" || result.scorer === "ChERRANT" ? "" : ` / ${result.scorer}`;
   return `${unit}${scorer}`;
 }
 
@@ -236,7 +237,7 @@ function splitWeight(split: string): number {
 }
 
 function unitWeight(unit: string): number {
-  const order = ["word", "character", "span", "official", "diagnosis", "unknown"];
+  const order = ["character", "word/span", "word", "span", "unknown", "official", "diagnosis"];
   const index = order.indexOf(unit);
   return index === -1 ? 99 : index;
 }
