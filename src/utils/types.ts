@@ -6,7 +6,9 @@ export type Dataset = {
   domain: string;
   localization_basis: string;
   correction_format: string;
+  error_label_explicitness: string;
   multi_reference: string;
+  documentation_qc: string;
   common_metrics: string[];
   evaluation_notes: string;
   url: string;

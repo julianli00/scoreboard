@@ -73,8 +73,16 @@ export function DatasetOverview({
                   <dd>{dataset.correction_format}</dd>
                 </div>
                 <div>
+                  <dt>Labels</dt>
+                  <dd>{dataset.error_label_explicitness}</dd>
+                </div>
+                <div>
                   <dt>References</dt>
                   <dd>{dataset.multi_reference}</dd>
+                </div>
+                <div>
+                  <dt>QC</dt>
+                  <dd>{dataset.documentation_qc}</dd>
                 </div>
               </dl>
             </article>

@@ -77,7 +77,9 @@ Add one object to `src/data/datasets.json` with:
 - `domain`
 - `localization_basis`
 - `correction_format`
+- `error_label_explicitness`
 - `multi_reference`
+- `documentation_qc`
 - `common_metrics`
 - `evaluation_notes`
 - `url`

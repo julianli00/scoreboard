@@ -12,6 +12,26 @@ const paperIds = new Set(papers.map((paper) => paper.id));
 const errors = [];
 const warnings = [];
 
+for (const dataset of datasets) {
+  for (const field of [
+    "id",
+    "name",
+    "population",
+    "domain",
+    "localization_basis",
+    "correction_format",
+    "error_label_explicitness",
+    "multi_reference",
+    "documentation_qc",
+    "evaluation_notes",
+    "source",
+  ]) {
+    if (dataset[field] === undefined || dataset[field] === "") {
+      errors.push(`${dataset.id ?? "unknown dataset"}: missing required dataset field ${field}`);
+    }
+  }
+}
+
 for (const result of results) {
   if (!paperIds.has(result.paper_id)) {
     errors.push(`${result.id}: unknown paper_id ${result.paper_id}`);
