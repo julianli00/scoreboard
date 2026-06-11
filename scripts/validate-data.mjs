@@ -56,7 +56,7 @@ for (const result of results) {
   }
 
   if (result.unit === "unknown") {
-    warnings.push(`${result.id}: unit is unknown and should remain visibly marked`);
+    warnings.push(`${result.id}: unit is unknown and should remain visible as an unknown-unit column`);
   }
 
   if (!String(result.rank_group).startsWith(`${result.dataset_id}__`)) {

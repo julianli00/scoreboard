@@ -12,17 +12,13 @@ export type ExcludedStandard = {
   reason: string;
 };
 
-export type MarkedStandard = ExcludedStandard;
-
 const DEFAULT_SCORER = "ChERRANT";
 
 export function standardizeScoreboardResults(results: Result[]): {
   included: Result[];
-  marked: MarkedStandard[];
   excluded: ExcludedStandard[];
 } {
   const included: Result[] = [];
-  const marked: MarkedStandard[] = [];
   const excluded: ExcludedStandard[] = [];
 
   for (const result of results) {
@@ -47,32 +43,17 @@ export function standardizeScoreboardResults(results: Result[]): {
     }
 
     const domainLabel = getDomainLabel(result.split);
-    const hasMarkedScorer = hasExplicitNonDefaultScorer(result.scorer);
-    if (hasMarkedScorer) {
-      marked.push({
-        datasetId: result.dataset_id,
-        paperId: result.paper_id,
-        resultId: result.id,
-        split: result.split,
-        metric: result.metric,
-        unit: normalizeUnitLabel(result.unit),
-        scorer: result.scorer,
-        systemName: result.system_name,
-        reason: "Explicit non-ChERRANT F0.5 scorer included in compact table",
-      });
-    }
+    const scorer = normalizeScorer(result.scorer);
 
     const notes = [
       result.notes,
       result.unit !== unit ? "Display unit normalized to word/span-level." : "",
       result.scorer === "unknown" ? "Display scorer defaults to ChERRANT." : "",
-      hasMarkedScorer ? `Original scorer explicitly reported as ${result.scorer}.` : "",
       domainLabel ? `Original split retained in row label: ${domainLabel} test.` : "",
     ]
       .filter(Boolean)
       .join(" ");
-    const scorerLabel = hasMarkedScorer ? result.scorer : "";
-    const rowQualifiers = [domainLabel ? `${domainLabel} test` : "", scorerLabel].filter(Boolean);
+    const rowQualifiers = [domainLabel ? `${domainLabel} test` : ""].filter(Boolean);
 
     included.push({
       ...result,
@@ -84,29 +65,24 @@ export function standardizeScoreboardResults(results: Result[]): {
         ? `${result.model_variant} / ${rowQualifiers.join("; ")}`
         : result.model_variant,
       unit,
-      scorer: DEFAULT_SCORER,
+      scorer,
       rank_group: [
         result.dataset_id,
         "test",
         "f0.5",
         standardKey(unit),
-        "cherrant",
+        standardKey(scorer),
       ].join("__"),
       notes,
     });
   }
 
-  return { included, marked, excluded };
+  return { included, excluded };
 }
 
 function isTestSplit(split: string): boolean {
   const value = split.toLowerCase();
   return value.includes("test") && !value.includes("validation") && !value.includes("dev");
-}
-
-function hasExplicitNonDefaultScorer(scorer: string): boolean {
-  const value = scorer.trim().toLowerCase();
-  return value !== "" && value !== "unknown" && !value.includes("cherrant");
 }
 
 function normalizeUnit(unit: string): string {
@@ -117,8 +93,16 @@ function normalizeUnit(unit: string): string {
   return "";
 }
 
-function normalizeUnitLabel(unit: string): string {
-  return normalizeUnit(unit) || unit;
+function normalizeScorer(scorer: string): string {
+  const value = scorer.trim();
+  const lowerValue = value.toLowerCase();
+  if (!value || lowerValue === "unknown" || lowerValue.includes("cherrant")) {
+    return DEFAULT_SCORER;
+  }
+  if (lowerValue.includes("maxmatch") || lowerValue === "m2") {
+    return "MaxMatch M2";
+  }
+  return value;
 }
 
 function getDomainLabel(split: string): string {

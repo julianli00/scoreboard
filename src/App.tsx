@@ -29,11 +29,6 @@ import type { Dataset, Paper, Result } from "./utils/types";
 const datasets = datasetsData as Dataset[];
 const papers = papersData as Paper[];
 const results = resultsData as Result[];
-const compactStandards = [
-  { label: "character-level", unit: "character" },
-  { label: "word/span-level", unit: "word/span" },
-  { label: "unknown unit", unit: "unknown" },
-];
 
 const initialFilters: FilterState = {
   query: "",
@@ -57,39 +52,40 @@ export default function App() {
     () => enrichResults(standardizedResults.included, papers, datasets),
     [standardizedResults],
   );
-  const markedStandardsByDataset = useMemo(() => {
-    const paperMap = new Map(papers.map((paper) => [paper.id, paper]));
-    const grouped = new Map<string, string[]>();
+  const metricCoverageStandards = useMemo(() => {
+    const standardsById = new Map<string, { id: string; label: string; scorer: string; unit: string }>();
 
-    for (const marked of standardizedResults.marked) {
-      const paper = paperMap.get(marked.paperId);
-      const label = [
-        paper?.citation ?? marked.paperId,
-        marked.systemName,
-        `${marked.split} ${marked.metric}`,
-        `${marked.unit} / ${marked.scorer}`,
-      ]
-        .filter(Boolean)
-        .join(" - ");
-      const items = grouped.get(marked.datasetId) ?? [];
-      items.push(label);
-      grouped.set(marked.datasetId, items);
+    for (const result of scoreboardResults) {
+      const id = makeCoverageStandardId(result.unit, result.scorer);
+      if (!standardsById.has(id)) {
+        standardsById.set(id, {
+          id,
+          label: makeCoverageStandardLabel(result.unit, result.scorer),
+          scorer: result.scorer,
+          unit: result.unit,
+        });
+      }
     }
 
-    return grouped;
-  }, [standardizedResults]);
+    return [...standardsById.values()].sort((a, b) => {
+      const unitCompare = coverageUnitWeight(a.unit) - coverageUnitWeight(b.unit);
+      if (unitCompare !== 0) return unitCompare;
+      return coverageScorerWeight(a.scorer) - coverageScorerWeight(b.scorer)
+        || a.scorer.localeCompare(b.scorer);
+    });
+  }, [scoreboardResults]);
   const metricCoverageRows = datasets.map((dataset) => {
     const datasetResults = scoreboardResults.filter((result) => result.dataset_id === dataset.id);
-    const countsByUnit = new Map<string, number>();
+    const countsByStandard = new Map<string, number>();
 
     for (const result of datasetResults) {
-      countsByUnit.set(result.unit, (countsByUnit.get(result.unit) ?? 0) + 1);
+      const standardId = makeCoverageStandardId(result.unit, result.scorer);
+      countsByStandard.set(standardId, (countsByStandard.get(standardId) ?? 0) + 1);
     }
 
     return {
       dataset,
-      countsByUnit,
-      markedCount: markedStandardsByDataset.get(dataset.id)?.length ?? 0,
+      countsByStandard,
       resultCount: datasetResults.length,
     };
   });
@@ -242,10 +238,9 @@ export default function App() {
             </div>
             <p>
               Each dataset now has one dedicated table. Rows are citation-style
-              paper/system entries. Columns are normalized to test F0.5
-              character-level, word/span-level, or unknown unit, with ChERRANT
-              treated as the default scorer unless a row explicitly marks a
-              different test F0.5 scorer.
+              paper/system entries. Columns are normalized to test F0.5, then
+              split by evaluation unit and scorer so ChERRANT and MaxMatch M2
+              stay in separate comparison columns.
             </p>
           </div>
 
@@ -275,18 +270,17 @@ export default function App() {
                 <thead>
                   <tr>
                     <th scope="col">Dataset</th>
-                    {compactStandards.map((standard) => (
-                      <th scope="col" key={standard.unit}>
+                    {metricCoverageStandards.map((standard) => (
+                      <th scope="col" key={standard.id}>
                         test F0.5
                         <span>{standard.label}</span>
                       </th>
                     ))}
-                    <th scope="col">Marked</th>
                     <th scope="col">Rows</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {metricCoverageRows.map(({ countsByUnit, dataset, markedCount, resultCount }) => (
+                  {metricCoverageRows.map(({ countsByStandard, dataset, resultCount }) => (
                     <tr key={dataset.id}>
                       <th scope="row">
                         <a href={`#matrix-${dataset.id}`} onClick={() => setFocusedDatasetId(dataset.id)}>
@@ -294,17 +288,14 @@ export default function App() {
                         </a>
                         <span>{dataset.population}</span>
                       </th>
-                      {compactStandards.map((standard) => {
-                        const count = countsByUnit.get(standard.unit) ?? 0;
+                      {metricCoverageStandards.map((standard) => {
+                        const count = countsByStandard.get(standard.id) ?? 0;
                         return (
-                          <td className={count ? "has-standard" : ""} key={standard.unit}>
+                          <td className={count ? "has-standard" : ""} key={standard.id}>
                             {count ? `${count} row${count === 1 ? "" : "s"}` : "—"}
                           </td>
                         );
                       })}
-                      <td className={markedCount ? "has-standard" : ""}>
-                        {markedCount ? `${markedCount} marked` : "—"}
-                      </td>
                       <td>{resultCount}</td>
                     </tr>
                   ))}
@@ -395,16 +386,6 @@ export default function App() {
                       <span>{filteredResultCount} visible</span>
                     </div>
                   </div>
-                  {markedStandardsByDataset.get(dataset.id)?.length ? (
-                    <div className="standard-note">
-                      <strong>Marked in this compact table</strong>
-                      <ul>
-                        {markedStandardsByDataset.get(dataset.id)?.map((item) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
 
                   {seededResultCount === 0 ? (
                     <div className="empty-state dataset-empty">
@@ -498,4 +479,32 @@ function downloadText(filename: string, text: string, type: string) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function makeCoverageStandardId(unit: string, scorer: string): string {
+  return `${toStandardKey(unit)}__${toStandardKey(scorer)}`;
+}
+
+function makeCoverageStandardLabel(unit: string, scorer: string): string {
+  const unitLabel = unit === "unknown" ? "unknown unit" : `${unit}-level`;
+  return `${unitLabel} / ${scorer}`;
+}
+
+function coverageUnitWeight(unit: string): number {
+  const order = ["character", "word/span", "unknown"];
+  const index = order.indexOf(unit);
+  return index === -1 ? 99 : index;
+}
+
+function coverageScorerWeight(scorer: string): number {
+  const order = ["ChERRANT", "MaxMatch M2"];
+  const index = order.indexOf(scorer);
+  return index === -1 ? 99 : index;
+}
+
+function toStandardKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }

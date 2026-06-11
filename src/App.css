@@ -960,32 +960,6 @@ a {
   border-radius: 8px;
 }
 
-.standard-note {
-  margin-top: 8px;
-  padding: 10px 12px;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.42;
-  background: color-mix(in srgb, var(--gold-soft) 48%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--gold) 24%, var(--line));
-  border-radius: 8px;
-}
-
-.standard-note strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--gold);
-  font-size: 0.74rem;
-  text-transform: uppercase;
-}
-
-.standard-note ul {
-  display: grid;
-  gap: 3px;
-  padding-left: 18px;
-  margin: 0;
-}
-
 .matrix-shell {
   width: 100%;
   min-width: 0;

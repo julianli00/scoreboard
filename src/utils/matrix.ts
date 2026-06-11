@@ -218,9 +218,7 @@ function makeStandardLabel(result: EnrichedResult): string {
 
 function makeDetailLabel(result: EnrichedResult): string {
   const unit = result.unit === "unknown" ? "unknown unit" : `${result.unit}-level`;
-  const scorer =
-    result.scorer === "unknown" || result.scorer === "ChERRANT" ? "" : ` / ${result.scorer}`;
-  return `${unit}${scorer}`;
+  return `${unit} / ${result.scorer}`;
 }
 
 function addUnique(target: string[], value: string) {
