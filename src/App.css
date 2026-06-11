@@ -31,9 +31,9 @@
   --motion-medium: 260ms;
   --ring: color-mix(in srgb, var(--teal) 38%, transparent);
   --content-width: 1240px;
-  --matrix-model-column: 320px;
-  --matrix-year-column: 76px;
-  --matrix-min-width: 680px;
+  --matrix-model-column: 300px;
+  --matrix-year-column: 72px;
+  --matrix-min-width: 720px;
 }
 
 * {
@@ -1112,7 +1112,7 @@ a {
   width: var(--matrix-year-column);
 }
 
-.matrix-results-col {
+.matrix-score-col {
   width: auto;
 }
 
@@ -1150,12 +1150,6 @@ a {
 
 .matrix-year-heading {
   padding: 0;
-}
-
-.matrix-results-heading {
-  padding: 8px 10px;
-  color: var(--muted);
-  text-align: left;
 }
 
 .matrix-sort {
@@ -1235,44 +1229,69 @@ a {
   writing-mode: horizontal-tb;
 }
 
-.matrix-results-heading > span {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--ink);
-  font-size: 0.72rem;
-  font-weight: 950;
-}
-
-.matrix-score-sort-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.matrix-score-sort {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  min-height: 26px;
-  padding: 0 8px;
+.matrix-standard-heading {
+  padding: 0;
   color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 900;
-  background: color-mix(in srgb, var(--surface-strong) 78%, var(--bg));
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  text-align: center;
+  background: color-mix(in srgb, var(--teal-soft) 42%, var(--surface-strong));
+}
+
+.matrix-standard-heading.is-focused,
+.matrix-score-cell.is-focused {
+  background: color-mix(in srgb, var(--teal-soft) 52%, var(--surface));
+}
+
+.matrix-standard-sort {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 5px;
+  align-items: center;
+  width: 100%;
+  min-height: 58px;
+  padding: 8px 9px;
+  color: var(--muted);
+  text-align: left;
+  background: transparent;
+  border-radius: 0;
   transition:
     color var(--motion-fast) var(--ease-out),
-    background-color var(--motion-fast) var(--ease-out),
-    border-color var(--motion-fast) var(--ease-out),
+    background-color var(--motion-fast) var(--ease-out);
+}
+
+.matrix-standard-sort:hover {
+  background: color-mix(in srgb, var(--teal-soft) 45%, transparent);
+}
+
+.matrix-standard-sort span {
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 950;
+  line-height: 1.08;
+  text-transform: none;
+}
+
+.matrix-standard-sort small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 850;
+  line-height: 1.18;
+  text-transform: none;
+}
+
+.matrix-standard-sort svg {
+  color: var(--muted);
+  transition:
+    color var(--motion-fast) var(--ease-out),
     transform var(--motion-fast) var(--ease-spring);
 }
 
-.matrix-score-sort:hover,
-.matrix-score-sort.is-active {
+.matrix-standard-sort.is-active span,
+.matrix-standard-sort.is-active svg {
   color: var(--teal);
-  background: var(--teal-soft);
-  border-color: color-mix(in srgb, var(--teal) 38%, var(--line));
+}
+
+.matrix-standard-sort.is-active svg {
   transform: translateY(-1px);
 }
 
@@ -1351,67 +1370,63 @@ a {
   text-decoration: none;
 }
 
-.matrix-results-cell {
-  background: color-mix(in srgb, var(--teal-soft) 18%, var(--surface));
+.matrix-score-cell {
+  text-align: center;
+  background: color-mix(in srgb, var(--teal-soft) 26%, var(--surface));
 }
 
-.matrix-result-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-
-.matrix-result-chip {
+.matrix-score-value {
   display: inline-grid;
-  grid-template-columns: minmax(74px, auto) auto auto;
-  gap: 6px;
-  align-items: baseline;
-  min-height: 32px;
+  gap: 2px;
+  min-width: 76px;
   padding: 5px 8px;
   color: var(--muted);
-  background: color-mix(in srgb, var(--surface-strong) 86%, var(--teal-soft));
-  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
   border-radius: 8px;
   transition:
-    background-color var(--motion-fast) var(--ease-out),
     border-color var(--motion-fast) var(--ease-out),
     transform var(--motion-fast) var(--ease-spring);
 }
 
-.matrix-result-chip:hover {
+.matrix-score-value:hover {
   border-color: color-mix(in srgb, var(--teal) 34%, var(--line));
   transform: translateY(-1px);
 }
 
-.matrix-result-chip span {
-  font-size: 0.66rem;
-  font-weight: 900;
+.matrix-score-value strong,
+.matrix-score-value span {
+  display: block;
 }
 
-.matrix-result-chip strong {
+.matrix-score-value strong {
   color: var(--teal);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-variant-numeric: tabular-nums;
   font-weight: 950;
   transition: transform var(--motion-fast) var(--ease-spring);
 }
 
-.matrix-result-chip em {
+.matrix-score-value span {
   color: var(--muted);
-  font-size: 0.6rem;
-  font-style: normal;
+  font-size: 0.58rem;
   font-weight: 950;
 }
 
-.matrix-result-chip.is-best {
-  background: color-mix(in srgb, var(--gold-soft) 70%, var(--surface-strong));
-  border-color: color-mix(in srgb, var(--gold) 26%, var(--line));
+.matrix-score-cell.is-best .matrix-score-value {
+  background: color-mix(in srgb, var(--gold-soft) 72%, var(--surface-strong));
+  border-color: color-mix(in srgb, var(--gold) 24%, var(--line));
 }
 
-.matrix-result-chip.is-best strong,
-.matrix-result-chip.is-best em {
+.matrix-score-cell.is-best .matrix-score-value strong,
+.matrix-score-cell.is-best .matrix-score-value span {
   color: var(--gold);
+}
+
+.missing-score {
+  color: color-mix(in srgb, var(--muted) 58%, transparent);
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
 .rank-groups {
@@ -1504,8 +1519,8 @@ th {
   padding: 8px 7px;
 }
 
-.matrix-table .matrix-results-cell {
-  padding: 8px 10px;
+.matrix-table .matrix-score-cell {
+  padding: 8px 7px;
 }
 
 tbody tr:last-child td {
@@ -1516,7 +1531,7 @@ tbody tr:hover {
   background: color-mix(in srgb, var(--teal-soft) 36%, transparent);
 }
 
-.matrix-table tbody tr:hover .matrix-result-chip strong {
+.matrix-table tbody tr:hover .matrix-score-value strong {
   transform: translateY(-1px);
 }
 

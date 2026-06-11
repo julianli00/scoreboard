@@ -51,7 +51,9 @@ export function MatrixScoreboard({
         <colgroup>
           <col className="matrix-model-col" />
           <col className="matrix-year-col" />
-          <col className="matrix-results-col" />
+          {columns.map((column) => (
+            <col className="matrix-score-col" key={column.id} />
+          ))}
         </colgroup>
         <thead>
           <tr>
@@ -86,41 +88,51 @@ export function MatrixScoreboard({
                 )}
               </button>
             </th>
-            <th className="matrix-results-heading">
-              <span>Results</span>
-              <div className="matrix-score-sort-list">
-                {columns.map((column) => {
-                  const isActive = sortState?.columnId === column.id;
-                  const direction = isActive ? sortState.direction : null;
-                  const sortTitle =
-                    direction === "asc"
-                      ? `Sort ${column.datasetName} ${column.standardLabel} descending`
-                      : direction === "desc"
-                        ? `Restore default order for ${column.datasetName} ${column.standardLabel}`
-                        : `Sort ${column.datasetName} ${column.standardLabel} ascending`;
+            {columns.map((column) => {
+              const isActive = sortState?.columnId === column.id;
+              const direction = isActive ? sortState.direction : null;
+              const sortTitle =
+                direction === "asc"
+                  ? `Sort ${column.datasetName} ${column.standardLabel} descending`
+                  : direction === "desc"
+                    ? `Restore default order for ${column.datasetName} ${column.standardLabel}`
+                    : `Sort ${column.datasetName} ${column.standardLabel} ascending`;
 
-                  return (
-                    <button
-                      className={`matrix-score-sort ${isActive ? "is-active" : ""}`}
-                      data-column-id={column.id}
-                      data-sort-direction={direction ?? "default"}
-                      onClick={() => onSort(column.id)}
-                      title={`${sortTitle} (${column.detailLabel})`}
-                      type="button"
-                    >
-                      <span>{formatStandardLabel(column.detailLabel)}</span>
-                      {direction === "asc" ? (
-                        <ArrowUp size={13} aria-hidden="true" />
-                      ) : direction === "desc" ? (
-                        <ArrowDown size={13} aria-hidden="true" />
-                      ) : (
-                        <ArrowDownUp size={13} aria-hidden="true" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </th>
+              return (
+                <th
+                  className={`matrix-standard-heading ${
+                    column.datasetId === focusedDatasetId ? "is-focused" : ""
+                  }`}
+                  key={column.id}
+                  aria-sort={
+                    direction === "asc"
+                      ? "ascending"
+                      : direction === "desc"
+                        ? "descending"
+                        : "none"
+                  }
+                >
+                  <button
+                    className={`matrix-standard-sort ${isActive ? "is-active" : ""}`}
+                    data-column-id={column.id}
+                    data-sort-direction={direction ?? "default"}
+                    onClick={() => onSort(column.id)}
+                    title={`${sortTitle} (${column.detailLabel})`}
+                    type="button"
+                  >
+                    <span>{formatUnitLabel(column.unit)}</span>
+                    <small>{column.standardLabel} · {column.scorer}</small>
+                    {direction === "asc" ? (
+                      <ArrowUp size={13} aria-hidden="true" />
+                    ) : direction === "desc" ? (
+                      <ArrowDown size={13} aria-hidden="true" />
+                    ) : (
+                      <ArrowDownUp size={13} aria-hidden="true" />
+                    )}
+                  </button>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -159,36 +171,38 @@ export function MatrixScoreboard({
                   row.year
                 )}
               </td>
-              <td className="matrix-results-cell">
-                <div className="matrix-result-list">
-                  {columns
-                    .map((column) => {
-                      const result = row.cells[column.id]?.result;
-                      if (!result) return null;
+              {columns.map((column) => {
+                const result = row.cells[column.id]?.result;
 
-                      return (
-                        <div
-                          className={`matrix-result-chip ${
-                            column.datasetId === focusedDatasetId ? "is-focused" : ""
-                          } ${result.isBestInGroup ? "is-best" : ""}`}
-                          key={`${row.id}-${column.id}`}
-                          title={[
+                return (
+                  <td
+                    className={`matrix-score-cell ${
+                      column.datasetId === focusedDatasetId ? "is-focused" : ""
+                    } ${result?.isBestInGroup ? "is-best" : ""}`}
+                    key={`${row.id}-${column.id}`}
+                    title={
+                      result
+                        ? [
                             result.source,
                             result.source_quote_or_page,
                             result.notes,
                           ]
                             .filter(Boolean)
-                            .join(" / ")}
-                        >
-                          <span>{formatStandardLabel(column.detailLabel)}</span>
-                          <strong>{formatScore(result.score, result.score_display)}</strong>
-                          <em>#{result.rank}</em>
-                        </div>
-                      );
-                    })
-                    .filter(Boolean)}
-                </div>
-              </td>
+                            .join(" / ")
+                        : "Unreported"
+                    }
+                  >
+                    {result ? (
+                      <div className="matrix-score-value">
+                        <strong>{formatScore(result.score, result.score_display)}</strong>
+                        <span>#{result.rank}</span>
+                      </div>
+                    ) : (
+                      <span className="missing-score">—</span>
+                    )}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -197,9 +211,7 @@ export function MatrixScoreboard({
   );
 }
 
-function formatStandardLabel(label: string): string {
-  return label
-    .replace("-level", "")
-    .replace("unknown unit", "unknown")
-    .replace(" / ", " · ");
+function formatUnitLabel(unit: string): string {
+  if (unit === "unknown") return "Unknown unit";
+  return `${unit} level`;
 }
