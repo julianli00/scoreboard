@@ -8,6 +8,10 @@ import {
 } from "../utils/matrix";
 import { MetricBadge } from "./MetricBadge";
 
+const MODEL_COLUMN_WIDTH = 360;
+const YEAR_COLUMN_WIDTH = 86;
+const SCORE_COLUMN_WIDTH = 190;
+
 type MatrixScoreboardProps = {
   groups: MatrixDatasetGroup[];
   rows: MatrixRow[];
@@ -24,6 +28,8 @@ export function MatrixScoreboard({
   sortState,
 }: MatrixScoreboardProps) {
   const columns = groups.flatMap((group) => group.columns);
+  const tableWidth =
+    MODEL_COLUMN_WIDTH + YEAR_COLUMN_WIDTH + columns.length * SCORE_COLUMN_WIDTH;
   const isYearActive = sortState?.columnId === YEAR_SORT_COLUMN_ID;
   const yearDirection = isYearActive ? sortState.direction : null;
   const yearSortTitle =
@@ -47,7 +53,17 @@ export function MatrixScoreboard({
       aria-label="Two-dimensional CGEC comparison matrix"
       translate="no"
     >
-      <table className="matrix-table">
+      <table
+        className="matrix-table"
+        style={{ minWidth: `${tableWidth}px`, width: `${tableWidth}px` }}
+      >
+        <colgroup>
+          <col className="matrix-model-col" />
+          <col className="matrix-year-col" />
+          {columns.map((column) => (
+            <col className="matrix-score-col" key={column.id} />
+          ))}
+        </colgroup>
         <thead>
           <tr>
             <th className="matrix-sticky matrix-model-heading" rowSpan={2}>
