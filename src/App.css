@@ -31,9 +31,9 @@
   --motion-medium: 260ms;
   --ring: color-mix(in srgb, var(--teal) 38%, transparent);
   --content-width: 1240px;
-  --matrix-model-column: 360px;
-  --matrix-year-column: 86px;
-  --matrix-score-column: 190px;
+  --matrix-model-column: 320px;
+  --matrix-year-column: 76px;
+  --matrix-min-width: 680px;
 }
 
 * {
@@ -187,6 +187,10 @@ a {
 
 .side-nav a {
   text-decoration: none;
+}
+
+.side-nav-label {
+  display: none;
 }
 
 .icon-button,
@@ -762,17 +766,16 @@ a {
 }
 
 .filter-panel {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
   gap: 10px;
-  align-items: flex-end;
-  margin-top: 18px;
-  padding: 14px;
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(29, 38, 35, 0.04);
-  backdrop-filter: blur(18px);
+  align-items: center;
+  margin-top: 10px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
   transition:
     border-color var(--motion-medium) var(--ease-out),
     box-shadow var(--motion-medium) var(--ease-out),
@@ -780,8 +783,8 @@ a {
 }
 
 .filter-panel:focus-within {
-  border-color: color-mix(in srgb, var(--teal) 42%, var(--line));
-  box-shadow: 0 14px 34px rgba(17, 106, 108, 0.1);
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .search-box,
@@ -793,8 +796,8 @@ a {
 
 .search-box {
   position: relative;
-  flex: 1 1 230px;
-  min-width: min(100%, 220px);
+  width: min(100%, 420px);
+  min-width: 0;
 }
 
 .select-filter {
@@ -805,6 +808,13 @@ a {
 .filter-panel .secondary-action.compact {
   flex: 0 1 auto;
   min-width: max-content;
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .search-box svg {
@@ -820,7 +830,7 @@ a {
 .select-filter select {
   width: 100%;
   min-width: 0;
-  height: 40px;
+  height: 38px;
   color: var(--ink);
   background: var(--surface-strong);
   border: 1px solid var(--line);
@@ -892,7 +902,7 @@ a {
 
 .dataset-scoreboards {
   display: grid;
-  gap: 22px;
+  gap: 26px;
   width: 100%;
   min-width: 0;
   margin-top: 18px;
@@ -905,14 +915,15 @@ a {
 
 .dataset-scoreboard-heading {
   display: grid;
-  grid-template-columns: minmax(160px, 0.62fr) minmax(260px, 1fr) auto;
+  grid-template-columns: minmax(180px, 0.5fr) minmax(260px, 1fr) auto;
   gap: 14px;
-  align-items: end;
+  align-items: start;
   min-width: 0;
-  padding: 14px;
+  padding: 14px 16px;
   background: color-mix(in srgb, var(--surface) 90%, transparent);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 0;
   box-shadow: 0 8px 22px rgba(29, 38, 35, 0.04);
 }
 
@@ -920,6 +931,37 @@ a {
   margin: 0;
   font-size: clamp(1.15rem, 2vw, 1.55rem);
   line-height: 1.08;
+}
+
+.dataset-source-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.dataset-source-row a {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  color: var(--teal);
+  text-decoration: none;
+  background: var(--teal-soft);
+  border-radius: 999px;
+  transition:
+    background-color var(--motion-fast) var(--ease-out),
+    transform var(--motion-fast) var(--ease-spring);
+}
+
+.dataset-source-row a:hover {
+  background: color-mix(in srgb, var(--teal-soft) 72%, var(--surface-strong));
+  transform: translateY(-1px);
 }
 
 .dataset-scoreboard-heading p:not(.eyebrow) {
@@ -951,9 +993,46 @@ a {
   border-radius: 999px;
 }
 
+.dataset-inline-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+}
+
+.dataset-inline-facts div {
+  min-width: 0;
+  padding: 10px 12px;
+  border-right: 1px solid var(--line);
+}
+
+.dataset-inline-facts div:last-child {
+  border-right: 0;
+}
+
+.dataset-inline-facts dt {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dataset-inline-facts dd {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 780;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
+}
+
 .dataset-scoreboard .matrix-shell {
-  max-height: min(54vh, 520px);
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .dataset-empty {
@@ -966,17 +1045,17 @@ a {
 .matrix-shell {
   width: 100%;
   min-width: 0;
-  margin-top: 14px;
-  overflow: auto;
-  max-height: min(68vh, 640px);
+  margin-top: 0;
+  overflow-x: auto;
+  overflow-y: visible;
   overscroll-behavior: contain;
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--teal) 34%, var(--line)) transparent;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 8px 26px rgba(29, 38, 35, 0.06);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 12px 28px rgba(29, 38, 35, 0.07);
   transition:
     border-color var(--motion-medium) var(--ease-out),
     box-shadow var(--motion-medium) var(--ease-out);
@@ -984,7 +1063,7 @@ a {
 
 .matrix-shell:hover {
   border-color: color-mix(in srgb, var(--teal) 34%, var(--line));
-  box-shadow: 0 16px 42px rgba(29, 38, 35, 0.11);
+  box-shadow: 0 16px 38px rgba(29, 38, 35, 0.1);
 }
 
 .matrix-shell::-webkit-scrollbar,
@@ -1017,10 +1096,12 @@ a {
 }
 
 .matrix-table {
+  width: 100%;
+  min-width: var(--matrix-min-width);
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
 }
 
 .matrix-model-col {
@@ -1031,14 +1112,11 @@ a {
   width: var(--matrix-year-column);
 }
 
-.matrix-score-col {
-  width: var(--matrix-score-column);
+.matrix-results-col {
+  width: auto;
 }
 
 .matrix-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 12;
   box-shadow: 0 1px 0 var(--line-strong);
 }
 
@@ -1056,86 +1134,28 @@ a {
   border-right: 0;
 }
 
-.matrix-sticky {
-  position: sticky;
-  left: 0;
-  z-index: 7;
-  width: var(--matrix-model-column);
-  min-width: var(--matrix-model-column);
-  max-width: var(--matrix-model-column);
-  background: var(--surface-strong);
-  box-shadow: 1px 0 0 var(--line);
-  transition:
-    background-color var(--motion-fast) var(--ease-out),
-    box-shadow var(--motion-fast) var(--ease-out);
-}
-
 .matrix-model-heading {
-  z-index: 14;
+  width: var(--matrix-model-column);
+  color: var(--muted);
   text-align: left;
   vertical-align: middle;
 }
 
 .matrix-year-heading,
 .matrix-year-cell {
-  position: sticky;
-  left: var(--matrix-model-column);
-  z-index: 6;
   width: var(--matrix-year-column);
-  min-width: var(--matrix-year-column);
-  max-width: var(--matrix-year-column);
   text-align: center;
   white-space: nowrap;
-  background: var(--surface-strong);
-  box-shadow: 1px 0 0 var(--line);
 }
 
 .matrix-year-heading {
-  z-index: 13;
   padding: 0;
 }
 
-.matrix-dataset-heading {
-  min-width: 116px;
-  padding: 9px 10px;
-  color: var(--ink);
-  text-align: center;
-  background: color-mix(in srgb, var(--teal-soft) 50%, var(--surface-strong));
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--line-strong);
-}
-
-.matrix-dataset-heading.is-focused,
-.matrix-standard-heading.is-focused,
-.matrix-score-cell.is-focused {
-  background: color-mix(in srgb, var(--teal-soft) 68%, var(--surface-strong));
-}
-
-.matrix-dataset-heading span,
-.matrix-dataset-heading small {
-  display: block;
-}
-
-.matrix-dataset-heading span {
-  font-size: 0.82rem;
-  font-weight: 950;
-}
-
-.matrix-dataset-heading small {
-  margin-top: 2px;
+.matrix-results-heading {
+  padding: 8px 10px;
   color: var(--muted);
-  font-size: 0.62rem;
-  font-weight: 850;
-  text-transform: none;
-}
-
-.matrix-standard-heading {
-  width: var(--matrix-score-column);
-  min-width: var(--matrix-score-column);
-  max-width: var(--matrix-score-column);
-  padding: 0;
-  text-align: center;
-  vertical-align: stretch;
+  text-align: left;
 }
 
 .matrix-sort {
@@ -1215,9 +1235,52 @@ a {
   writing-mode: horizontal-tb;
 }
 
+.matrix-results-heading > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.matrix-score-sort-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.matrix-score-sort {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 8px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  background: color-mix(in srgb, var(--surface-strong) 78%, var(--bg));
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition:
+    color var(--motion-fast) var(--ease-out),
+    background-color var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    transform var(--motion-fast) var(--ease-spring);
+}
+
+.matrix-score-sort:hover,
+.matrix-score-sort.is-active {
+  color: var(--teal);
+  background: var(--teal-soft);
+  border-color: color-mix(in srgb, var(--teal) 38%, var(--line));
+  transform: translateY(-1px);
+}
+
 .matrix-model-cell {
+  width: var(--matrix-model-column);
   color: var(--ink);
   text-transform: none;
+  background: var(--surface-strong);
 }
 
 .matrix-model-cell strong,
@@ -1279,6 +1342,7 @@ a {
 .matrix-year-cell {
   color: var(--muted);
   font-weight: 900;
+  background: color-mix(in srgb, var(--surface) 86%, var(--surface-strong));
 }
 
 .matrix-year-cell a {
@@ -1287,53 +1351,67 @@ a {
   text-decoration: none;
 }
 
-.matrix-score-cell {
-  width: var(--matrix-score-column);
-  min-width: var(--matrix-score-column);
-  max-width: var(--matrix-score-column);
-  text-align: center;
-  vertical-align: middle;
+.matrix-results-cell {
+  background: color-mix(in srgb, var(--teal-soft) 18%, var(--surface));
 }
 
-.matrix-score-cell strong,
-.matrix-score-cell span {
-  display: block;
+.matrix-result-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
 }
 
-.matrix-score-cell strong {
-  color: var(--teal);
-  font-size: 0.86rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 950;
+.matrix-result-chip {
+  display: inline-grid;
+  grid-template-columns: minmax(74px, auto) auto auto;
+  gap: 6px;
+  align-items: baseline;
+  min-height: 32px;
+  padding: 5px 8px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface-strong) 86%, var(--teal-soft));
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  border-radius: 8px;
   transition:
-    color var(--motion-fast) var(--ease-out),
+    background-color var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
     transform var(--motion-fast) var(--ease-spring);
 }
 
-.matrix-score-cell span:not(.missing-score) {
-  width: max-content;
-  margin: 3px auto 0;
-  padding: 1px 5px;
-  color: var(--muted);
-  font-size: 0.58rem;
-  font-weight: 950;
-  background: color-mix(in srgb, var(--line) 45%, transparent);
-  border-radius: 999px;
+.matrix-result-chip:hover {
+  border-color: color-mix(in srgb, var(--teal) 34%, var(--line));
+  transform: translateY(-1px);
 }
 
-.matrix-score-cell.is-best strong {
-  color: var(--gold);
+.matrix-result-chip span {
+  font-size: 0.66rem;
+  font-weight: 900;
 }
 
-.matrix-score-cell.is-best span:not(.missing-score) {
-  color: var(--gold);
-  background: var(--gold-soft);
-}
-
-.missing-score {
-  color: color-mix(in srgb, var(--muted) 58%, transparent);
+.matrix-result-chip strong {
+  color: var(--teal);
   font-size: 0.9rem;
-  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-weight: 950;
+  transition: transform var(--motion-fast) var(--ease-spring);
+}
+
+.matrix-result-chip em {
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.matrix-result-chip.is-best {
+  background: color-mix(in srgb, var(--gold-soft) 70%, var(--surface-strong));
+  border-color: color-mix(in srgb, var(--gold) 26%, var(--line));
+}
+
+.matrix-result-chip.is-best strong,
+.matrix-result-chip.is-best em {
+  color: var(--gold);
 }
 
 .rank-groups {
@@ -1413,26 +1491,21 @@ th {
 
 .matrix-table th,
 .matrix-table td {
-  padding: 6px 7px;
-  line-height: 1.18;
+  padding: 8px 10px;
+  line-height: 1.22;
   vertical-align: middle;
 }
 
-.matrix-table .matrix-standard-heading {
-  padding: 0;
-}
-
-.matrix-table .matrix-dataset-heading {
-  padding: 8px 9px;
-}
-
 .matrix-table .matrix-model-cell {
-  padding: 7px 8px;
+  padding: 9px 10px;
 }
 
-.matrix-table .matrix-score-cell,
 .matrix-table .matrix-year-cell {
-  padding: 6px;
+  padding: 8px 7px;
+}
+
+.matrix-table .matrix-results-cell {
+  padding: 8px 10px;
 }
 
 tbody tr:last-child td {
@@ -1443,7 +1516,7 @@ tbody tr:hover {
   background: color-mix(in srgb, var(--teal-soft) 36%, transparent);
 }
 
-.matrix-table tbody tr:hover .matrix-score-cell strong {
+.matrix-table tbody tr:hover .matrix-result-chip strong {
   transform: translateY(-1px);
 }
 
@@ -1793,6 +1866,15 @@ tbody tr:hover {
       transform var(--motion-fast) var(--ease-spring);
   }
 
+  .side-nav-label {
+    display: block;
+    padding: 7px 9px 3px;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+
   .side-nav a:hover,
   .side-nav a:focus-visible {
     color: var(--teal);
@@ -1803,8 +1885,8 @@ tbody tr:hover {
   .side-nav-sublist {
     display: grid;
     gap: 1px;
-    padding: 2px 0 5px 22px;
-    margin: -2px 0 2px 16px;
+    padding: 2px 0 5px 10px;
+    margin: -2px 0 2px 6px;
     border-left: 1px solid color-mix(in srgb, var(--line) 86%, transparent);
   }
 
