@@ -483,6 +483,27 @@
     "notes": "Survey explicitly labels this as span-level F0.5 with ChERRANT."
   },
   {
+    "id": "tan_2023_mcscset_gector_span",
+    "paper_id": "tan_yang_xu_2023_gector",
+    "dataset_id": "mcscset",
+    "split": "test",
+    "system_name": "StructBERT-Large GECToR",
+    "method_family": "Sequence tagging",
+    "model_variant": "Focal loss + tagger decoupling",
+    "metric": "F0.5",
+    "unit": "span",
+    "scorer": "ChERRANT",
+    "score": 0.8309,
+    "score_display": "0.8309",
+    "higher_is_better": true,
+    "rank_group": "mcscset__test__f0.5__span__cherrant",
+    "model_type": "single",
+    "source": "CGEC survey Table 6",
+    "source_quote_or_page": "Table 6, page 34",
+    "verified": true,
+    "notes": "Related CSC benchmark: medical-domain Chinese spelling correction, included because the survey reports it alongside MuCGEC and FCGEC."
+  },
+  {
     "id": "liu_2024_fcgec_avgl_minl_span",
     "paper_id": "liu_2024_multiref",
     "dataset_id": "fcgec",

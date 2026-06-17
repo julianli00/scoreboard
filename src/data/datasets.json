@@ -85,6 +85,23 @@
     "source": "CGEC survey Sections 2.6 and Table 2, pages 15-16 and 23"
   },
   {
+    "id": "mcscset",
+    "name": "MCSCSet",
+    "aliases": ["MCSC", "Medical Chinese Spelling Correction Dataset"],
+    "population": "related CSC",
+    "domain": "medical queries / specialist-annotated spelling correction",
+    "localization_basis": "character-level spelling correction",
+    "correction_format": "source-target spelling correction pairs",
+    "error_label_explicitness": "spelling errors only",
+    "multi_reference": "unknown / not reported in CGEC survey table",
+    "documentation_qc": "specialist annotation; related CSC dataset",
+    "common_metrics": ["F0.5", "ChERRANT"],
+    "evaluation_notes": "MCSCSet is a related medical-domain Chinese spelling correction dataset rather than a core CGEC rewriting benchmark. It is included here because Tan, Yang, and Xu (2023) report ChERRANT F0.5 alongside MuCGEC and FCGEC.",
+    "url": "https://tianchi.aliyun.com/dataset/131328",
+    "notes": "Related CSC benchmark; compare within MCSCSet only.",
+    "source": "Tan, Yang, and Xu (2023), CGEC survey Table 6, page 34; MCSCSet dataset paper"
+  },
+  {
     "id": "cctc",
     "name": "CCTC",
     "aliases": ["Cross-Sentence Chinese Text Correction"],
