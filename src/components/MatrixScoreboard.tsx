@@ -1,5 +1,4 @@
 import { ArrowDown, ArrowDownUp, ArrowUp, ExternalLink } from "lucide-react";
-import type { WheelEvent } from "react";
 import { formatScore } from "../utils/formatScore";
 import {
   YEAR_SORT_COLUMN_ID,
@@ -46,7 +45,6 @@ export function MatrixScoreboard({
     <div
       className="matrix-shell notranslate"
       aria-label="Two-dimensional CGEC comparison matrix"
-      onWheel={handleMatrixWheel}
       translate="no"
     >
       <table className="matrix-table">
@@ -211,21 +209,6 @@ export function MatrixScoreboard({
       </table>
     </div>
   );
-}
-
-function handleMatrixWheel(event: WheelEvent<HTMLDivElement>) {
-  if (event.ctrlKey || event.deltaY === 0) return;
-
-  if (event.shiftKey) {
-    event.preventDefault();
-    event.currentTarget.scrollLeft += event.deltaY;
-    return;
-  }
-
-  if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-
-  event.preventDefault();
-  window.scrollBy({ top: event.deltaY, left: 0, behavior: "auto" });
 }
 
 function formatUnitLabel(unit: string): string {
