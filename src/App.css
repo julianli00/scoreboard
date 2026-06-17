@@ -30,10 +30,10 @@
   --motion-fast: 150ms;
   --motion-medium: 260ms;
   --ring: color-mix(in srgb, var(--teal) 38%, transparent);
-  --content-width: 1240px;
-  --matrix-model-column: 300px;
-  --matrix-year-column: 72px;
-  --matrix-min-width: 720px;
+  --content-width: 1180px;
+  --matrix-model-column: 280px;
+  --matrix-year-column: 66px;
+  --matrix-min-width: 660px;
 }
 
 * {
@@ -1053,8 +1053,9 @@ a {
   min-width: 0;
   margin-top: 0;
   overflow-x: auto;
-  overflow-y: visible;
-  overscroll-behavior: contain;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--teal) 34%, var(--line)) transparent;
@@ -1107,7 +1108,7 @@ a {
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
 }
 
 .matrix-model-col {
@@ -1253,8 +1254,8 @@ a {
   gap: 1px 5px;
   align-items: center;
   width: 100%;
-  min-height: 58px;
-  padding: 8px 9px;
+  min-height: 54px;
+  padding: 7px 8px;
   color: var(--muted);
   text-align: left;
   background: transparent;
@@ -1384,8 +1385,8 @@ a {
 .matrix-score-value {
   display: inline-grid;
   gap: 2px;
-  min-width: 76px;
-  padding: 5px 8px;
+  min-width: 68px;
+  padding: 5px 7px;
   color: var(--muted);
   background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
   border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
@@ -1512,21 +1513,21 @@ th {
 
 .matrix-table th,
 .matrix-table td {
-  padding: 8px 10px;
+  padding: 7px 9px;
   line-height: 1.22;
   vertical-align: middle;
 }
 
 .matrix-table .matrix-model-cell {
-  padding: 9px 10px;
+  padding: 8px 9px;
 }
 
 .matrix-table .matrix-year-cell {
-  padding: 8px 7px;
+  padding: 7px 6px;
 }
 
 .matrix-table .matrix-score-cell {
-  padding: 8px 7px;
+  padding: 7px 6px;
 }
 
 tbody tr:last-child td {
