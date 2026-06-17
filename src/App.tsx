@@ -9,7 +9,7 @@ import {
   ShieldCheck,
   Sun,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MatrixScoreboard } from "./components/MatrixScoreboard";
 import { Methodology } from "./components/Methodology";
 import { PaperList } from "./components/PaperList";
@@ -38,6 +38,7 @@ const initialFilters: FilterState = {
 
 export default function App() {
   const [focusedDatasetId, setFocusedDatasetId] = useState("nlpcc2018");
+  const [activeNavId, setActiveNavId] = useState("nlpcc2018");
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [matrixSort, setMatrixSort] = useState<MatrixSortState | null>(null);
   const [darkMode, setDarkMode] = useState(false);
@@ -76,6 +77,100 @@ export default function App() {
   const focusedDataset = datasets.find((dataset) => dataset.id === focusedDatasetId) ?? datasets[0];
   const allRankGroups = new Set(scoreboardResults.map((result) => result.rank_group)).size;
 
+  useEffect(() => {
+    let animationFrame = 0;
+    let hashUpdateTimeout = 0;
+
+    function getTargets() {
+      return [
+        ...datasets.map((dataset) => ({
+          id: dataset.id,
+          kind: "dataset" as const,
+          element: document.getElementById(`matrix-${dataset.id}`),
+        })),
+        {
+          id: "papers",
+          kind: "section" as const,
+          element: document.getElementById("papers"),
+        },
+        {
+          id: "policy",
+          kind: "section" as const,
+          element: document.getElementById("policy"),
+        },
+      ].filter((target): target is {
+        id: string;
+        kind: "dataset" | "section";
+        element: HTMLElement;
+      } => Boolean(target.element));
+    }
+
+    function applyActiveTarget() {
+      const markerY = Math.min(window.innerHeight * 0.33, 300);
+      const targets = getTargets();
+      const isAtPageEnd =
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+
+      const active = isAtPageEnd
+        ? targets[targets.length - 1]
+        : targets.find((target) => {
+            const rect = target.element.getBoundingClientRect();
+            return rect.top <= markerY && rect.bottom >= markerY;
+          }) ??
+          [...targets]
+            .reverse()
+            .find((target) => target.element.getBoundingClientRect().top <= markerY) ??
+          targets[0];
+
+      if (!active) return;
+      setActiveNavId((current) => (current === active.id ? current : active.id));
+      if (active.kind === "dataset") {
+        setFocusedDatasetId((current) => (current === active.id ? current : active.id));
+      }
+    }
+
+    function updateActiveNav() {
+      animationFrame = 0;
+      applyActiveTarget();
+    }
+
+    function requestUpdate() {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(updateActiveNav);
+    }
+
+    function requestHashUpdate() {
+      requestUpdate();
+      window.clearTimeout(hashUpdateTimeout);
+      hashUpdateTimeout = window.setTimeout(requestUpdate, 120);
+    }
+
+    const observer =
+      "IntersectionObserver" in window
+        ? new IntersectionObserver(requestUpdate, {
+            rootMargin: "-16% 0px -58% 0px",
+            threshold: [0, 0.15, 0.5, 1],
+          })
+        : null;
+
+    getTargets().forEach((target) => observer?.observe(target.element));
+    applyActiveTarget();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    window.addEventListener("hashchange", requestHashUpdate);
+
+    return () => {
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      window.clearTimeout(hashUpdateTimeout);
+      observer?.disconnect();
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      window.removeEventListener("hashchange", requestHashUpdate);
+    };
+  }, []);
+
   function updateFilter<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     setFilters((current) => ({ ...current, [key]: value }));
   }
@@ -102,9 +197,9 @@ export default function App() {
           Scoreboard
         </a>
         <nav className="notranslate" translate="no">
-          <a href="#leaderboards">Tables</a>
-          <a href="#papers">Papers</a>
-          <a href="#policy">Policy</a>
+          <a href="#leaderboards" onClick={() => setActiveNavId(focusedDataset.id)}>Tables</a>
+          <a href="#papers" onClick={() => setActiveNavId("papers")}>Papers</a>
+          <a href="#policy" onClick={() => setActiveNavId("policy")}>Policy</a>
         </nav>
         <button
           className="icon-button"
@@ -121,19 +216,31 @@ export default function App() {
         <div className="side-nav-sublist" aria-label="Dataset tables">
           {datasets.map((dataset) => (
             <a
+              className={activeNavId === dataset.id ? "is-active" : ""}
               href={`#matrix-${dataset.id}`}
               key={dataset.id}
-              onClick={() => setFocusedDatasetId(dataset.id)}
+              onClick={() => {
+                setFocusedDatasetId(dataset.id);
+                setActiveNavId(dataset.id);
+              }}
             >
               {dataset.name}
             </a>
           ))}
         </div>
-        <a href="#papers">
+        <a
+          className={activeNavId === "papers" ? "is-active" : ""}
+          href="#papers"
+          onClick={() => setActiveNavId("papers")}
+        >
           <FileText size={15} aria-hidden="true" />
           <span>Papers</span>
         </a>
-        <a href="#policy">
+        <a
+          className={activeNavId === "policy" ? "is-active" : ""}
+          href="#policy"
+          onClick={() => setActiveNavId("policy")}
+        >
           <ShieldCheck size={15} aria-hidden="true" />
           <span>Policy</span>
         </a>

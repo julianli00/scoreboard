@@ -665,6 +665,12 @@ a {
   border-color: var(--teal);
 }
 
+.side-nav a.is-active {
+  color: var(--teal);
+  background: color-mix(in srgb, var(--teal-soft) 72%, var(--surface));
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+
 .metric-dataset-overview {
   min-width: 0;
   margin-top: 12px;
@@ -1776,16 +1782,25 @@ tbody tr:hover {
 
 .paper-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .paper-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px 10px;
-  align-items: start;
-  padding: 12px 13px;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(260px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  transition:
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    transform var(--motion-fast) var(--ease-spring);
+}
+
+.paper-item:hover {
+  border-color: color-mix(in srgb, var(--teal) 28%, var(--line));
+  box-shadow: 0 10px 26px rgba(29, 38, 35, 0.08);
+  transform: translateY(-1px);
 }
 
 .paper-item h3 {
@@ -1801,17 +1816,24 @@ tbody tr:hover {
 
 .paper-item small {
   display: block;
-  margin-top: 4px;
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 750;
+}
+
+.paper-venue {
+  margin-top: 4px;
+}
+
+.paper-note {
+  margin-top: 3px;
+  line-height: 1.28;
 }
 
 .paper-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  grid-column: 1 / -1;
   justify-content: flex-start;
 }
 
@@ -1824,7 +1846,6 @@ tbody tr:hover {
   display: inline-flex;
   gap: 6px;
   align-items: center;
-  justify-self: end;
   min-height: 28px;
   padding: 0 8px;
   color: var(--teal);
@@ -1841,6 +1862,13 @@ tbody tr:hover {
 .paper-link:hover {
   border-color: color-mix(in srgb, var(--teal) 42%, var(--line));
   transform: translateY(-1px);
+}
+
+.paper-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
 }
 
 @media (min-width: 1540px) {
@@ -1891,10 +1919,15 @@ tbody tr:hover {
   }
 
   .side-nav a:hover,
-  .side-nav a:focus-visible {
+  .side-nav a:focus-visible,
+  .side-nav a.is-active {
     color: var(--teal);
     background: var(--teal-soft);
     transform: translateX(2px);
+  }
+
+  .side-nav a.is-active {
+    box-shadow: inset 3px 0 0 var(--teal);
   }
 
   .side-nav-sublist {
@@ -1960,6 +1993,10 @@ tbody tr:hover {
   }
 
   .paper-tags {
+    justify-content: flex-start;
+  }
+
+  .paper-actions {
     justify-content: flex-start;
   }
 

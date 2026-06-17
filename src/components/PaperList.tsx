@@ -27,25 +27,37 @@ export function PaperList({ papers, results }: PaperListProps) {
 
           return (
             <article className="paper-item" key={paper.id}>
-              <div>
+              <div className="paper-main">
                 <h3>{paper.citation}</h3>
                 <p>{paper.title}</p>
-                <small>
+                <small className="paper-venue">
                   {paper.venue} / {paper.year}
                 </small>
+                {paper.notes ? <small className="paper-note">{paper.notes}</small> : null}
               </div>
               <div className="paper-tags">
                 {paper.datasets_reported.map((dataset) => (
-                  <MetricBadge key={dataset} label={dataset} tone="unit" />
+                  <MetricBadge key={`dataset-${dataset}`} label={dataset} tone="unit" />
+                ))}
+                {paper.metrics_reported.slice(0, 3).map((metric) => (
+                  <MetricBadge key={`metric-${metric}`} label={metric} tone="metric" />
                 ))}
                 <MetricBadge label={`${paperResults.length} rows`} tone="source" />
               </div>
-              {paper.paper_url ? (
-                <a className="paper-link" href={paper.paper_url} rel="noreferrer" target="_blank">
-                  <ExternalLink size={14} />
-                  Paper
-                </a>
-              ) : null}
+              <div className="paper-actions">
+                {paper.paper_url ? (
+                  <a className="paper-link" href={paper.paper_url} rel="noreferrer" target="_blank">
+                    <ExternalLink size={14} />
+                    Paper
+                  </a>
+                ) : null}
+                {paper.code_url ? (
+                  <a className="paper-link" href={paper.code_url} rel="noreferrer" target="_blank">
+                    <ExternalLink size={14} />
+                    Code
+                  </a>
+                ) : null}
+              </div>
             </article>
           );
         })}
